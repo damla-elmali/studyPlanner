@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Time, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
@@ -19,6 +19,7 @@ class User(Base):
     role = Column(String, default="user")
     phone_number = Column(String, unique=True, index=True)
     score = Column(Integer, default=0)
+    grade = Column(String)  # e.g., 9, 10, 11, 12
 
     progress = relationship("TopicProgress", back_populates="user", cascade="all, delete")
 
@@ -114,3 +115,35 @@ class TopicProgress(Base):
 
     user = relationship("User", back_populates="progress")
     topic = relationship("Topic", back_populates="progress")
+
+
+# --------------------------
+
+
+class UserPreferences(Base):
+    __tablename__ = "user_preferences"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    preferred_start_hour = Column(Integer)  # like 9 (9 AM)
+    preferred_end_hour = Column(Integer)    # like 18 (6 PM)
+    preferred_days = Column(String)         # e.g. "Mon,Tue,Wed"
+    auto_plan_enabled = Column(Boolean, default=True)
+    # Optional: relationship to User
+
+
+# --------------------------
+
+
+class ScheduleSlot(Base):
+    __tablename__ = "schedule_slots"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    day = Column(String)                   # e.g. "Monday"
+    start_time = Column(Time)
+    end_time = Column(Time)
+    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=True)
+
+    # Optional relationships:
+    task = relationship("Tasks")
+    topic = relationship("Topic")

@@ -1,1 +1,0 @@
-#Get/update user profile, score, activity, role (admin/user)
