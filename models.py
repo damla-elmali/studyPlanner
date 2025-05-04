@@ -1,10 +1,17 @@
-from sqlalchemy import Column, Integer, String, DateTime, Time, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Time, Text, ForeignKey, Boolean, Enum as SqlEnum
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
+import enum
 
 # --------------------------
+# Enum for Mock Test Types
+class TestTypeEnum(str, enum.Enum):
+    TYT = "TYT"
+    AYT = "AYT"
+    YDT = "YDT"
 
+# --------------------------
 
 class User(Base):
     __tablename__ = "users"
@@ -21,11 +28,10 @@ class User(Base):
     score = Column(Integer, default=0)
     grade = Column(String)  # e.g., 9, 10, 11, 12
 
-    progress = relationship("TopicProgress", back_populates="user", cascade="all, delete")
+    mock_tests = relationship("MockTest", back_populates="user", cascade="all, delete")
 
 
 # --------------------------
-
 
 class Tasks(Base):
     __tablename__ = "tasks"
@@ -37,10 +43,9 @@ class Tasks(Base):
     deadline = Column(String)
     completed = Column(Boolean, default=False)
     owner_id = Column(Integer, ForeignKey('users.id'))
-
+    estimated_time = Column(String)  # e.g., "2 hours"
 
 # --------------------------
-
 
 class Analyzer(Base):
     __tablename__ = "analyzer"
@@ -58,7 +63,6 @@ class Analyzer(Base):
 
 # --------------------------
 
-
 class Lesson(Base):
     __tablename__ = "lessons"
 
@@ -71,7 +75,6 @@ class Lesson(Base):
 
 # --------------------------
 
-
 class Topic(Base):
     __tablename__ = "topics"
 
@@ -81,11 +84,9 @@ class Topic(Base):
 
     lesson = relationship("Lesson", back_populates="topics")
     mistakes = relationship("Mistake", back_populates="topic")
-    progress = relationship("TopicProgress", back_populates="topic", cascade="all, delete")
 
 
 # --------------------------
-
 
 class Mistake(Base):
     __tablename__ = "mistakes"
@@ -102,24 +103,6 @@ class Mistake(Base):
 
 # --------------------------
 
-
-class TopicProgress(Base):
-    __tablename__ = "topic_progress"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    topic_id = Column(Integer, ForeignKey("topics.id"))
-    last_reviewed = Column(DateTime, default=datetime.datetime.utcnow)
-    mistake_count = Column(Integer, default=0)
-    mastery_level = Column(Integer, default=0)  # 0–100 scale for understanding
-
-    user = relationship("User", back_populates="progress")
-    topic = relationship("Topic", back_populates="progress")
-
-
-# --------------------------
-
-
 class UserPreferences(Base):
     __tablename__ = "user_preferences"
     id = Column(Integer, primary_key=True)
@@ -128,11 +111,9 @@ class UserPreferences(Base):
     preferred_end_hour = Column(Integer)    # like 18 (6 PM)
     preferred_days = Column(String)         # e.g. "Mon,Tue,Wed"
     auto_plan_enabled = Column(Boolean, default=True)
-    # Optional: relationship to User
 
 
 # --------------------------
-
 
 class ScheduleSlot(Base):
     __tablename__ = "schedule_slots"
@@ -144,6 +125,35 @@ class ScheduleSlot(Base):
     task_id = Column(Integer, ForeignKey("tasks.id"), nullable=True)
     topic_id = Column(Integer, ForeignKey("topics.id"), nullable=True)
 
-    # Optional relationships:
     task = relationship("Tasks")
     topic = relationship("Topic")
+
+
+# --------------------------
+
+class MockTest(Base):
+    __tablename__ = "mock_tests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    test_type = Column(SqlEnum(TestTypeEnum), nullable=False)
+    test_date = Column(DateTime, default=datetime.datetime.utcnow)
+    user = relationship("User", back_populates="mock_tests")
+    sections = relationship("MockTestSection", back_populates="mock_test", cascade="all, delete")
+
+
+# --------------------------
+
+class MockTestSection(Base):
+    __tablename__ = "mock_test_sections"
+
+    id = Column(Integer, primary_key=True, index=True)
+    mock_test_id = Column(Integer, ForeignKey("mock_tests.id"), nullable=False)
+
+    section_name = Column(String, nullable=False)  # e.g., Türkçe, Matematik
+    correct = Column(Integer, nullable=False)
+    blank = Column(Integer, nullable=False)
+    wrong = Column(Integer, nullable=False)
+    net = Column(Integer, nullable=False)
+
+    mock_test = relationship("MockTest", back_populates="sections")

@@ -30,6 +30,7 @@ class TaskCreate(BaseModel):
     priority: int = Field(..., example=1)
     deadline: str = Field(..., example="2023-12-31")
     completed: bool = Field(False, example=False)
+    estimated_time: str = Field(..., example="2 hours")
 
 def get_db():
     db = SessionLocal()

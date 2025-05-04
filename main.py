@@ -3,7 +3,7 @@ from fastapi import FastAPI
 
 from database import engine, Base
 from routers import (
-    auth, tasks, chatbot, planner, analyzer, mistakes, lessons, topics
+    auth, tasks, chatbot, planner, analyzer
 )
 
 # Create all tables
