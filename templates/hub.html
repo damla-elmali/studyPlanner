@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Coaching Website - Main Page</title>
+            <link rel="stylesheet" href="hub.css">
+        </head>
+        <body>
+            <div class="main-box">
+                <header>
+                    <h1> Group 95 </h1>
+                </header>
+                <nav>
+                    <ul>
+                        <li><a href="../timer/timer.html" class="nav-button">Timer</a></li>
+                        <li><a href="../chatbot/chatbot.html" class="nav-button">Mentor</a></li>
+                        <li><a href="../planner/planner.html" class="nav-button">Agenda</a></li>
+                        <li><a href="../result/result.html" class="nav-button">Result Table</a></li>
+                        <li><a href="../login/login.html" class="nav-button">Exit</a></li>
+                    </ul>
+                </nav>
+                <main>
+                    <section class="dashboard">
+                        <h2>Brief overview</h2>
+                        <div class="dashboard-items">
+                            <div class="dashboard-item" id="upcoming-lessons-widget">
+                                <h3> Upcoming Lessons </h3>
+                                <ul id="upcoming-lessons-list">
+                                    <li class="empty-message"> There is no upcoming lesson.</li>
+                                </ul>
+                                <button id="view-all-lessons-button"><a href="../planner/planner.html">View All</a></button>
+                            </div>
+                            <div class="dashboard-item" id="last-results-widget">
+                                <h3> Last Result </h3>
+                                <div id = "last-results-box">
+                                    <p class="empty-message">There is no result entered.</p>
+                                </div>
+                                <button id="view-all-results-button"><a href="../result/result.html">Tümünü Gör</a></button>
+                            </div>
+                        </div>
+                    </section>
+                </main>
+                <footer>
+                    <p>© YZTA AI Grup 95 </p>
+                </footer>
+            </div>
+            <script src="hub.js"></script>
+        </body>
+    </html>
