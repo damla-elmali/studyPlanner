@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Görevi Düzenle</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="mb-4">Görevi Düzenle</h2>
+
+    <form method="post" action="/tasks/{{ task.id }}/edit">
+        <div class="mb-3">
+            <label for="title" class="form-label">Görev Başlığı</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ task.title }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Açıklama</label>
+            <textarea class="form-control" id="description" name="description" rows="3">{{ task.description }}</textarea>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="completed" name="completed" {% if task.completed %}checked{% endif %}>
+            <label class="form-check-label" for="completed">Tamamlandı</label>
+        </div>
+
+        <button type="submit" class="btn btn-success">Güncelle</button>
+        <a href="/tasks" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
+
+<script src="{{ url_for('static', path='js/jquery-slim.js') }}"></script>
+<script src="{{ url_for('static', path='js/popper.js') }}"></script>
+<script src="{{ url_for('static', path='js/bootstrap.js') }}"></script>
+<script src="{{ url_for('static', path='js/tasks.js') }}"></script>
+</body>
+</html>
