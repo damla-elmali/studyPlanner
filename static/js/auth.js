@@ -25,7 +25,7 @@ if (loginForm) {
                 const data = await response.json();
                 // Optional: Eğer önceki cookie'leri temizlemek istiyorsanız logout() çağrılabilir.
                 // Save token to cookie. Ek olarak SameSite veya Secure ekleyebilirsiniz.
-                document.cookie = `access_token=${data.access_token}; path=/;
+                document.cookie = `access_token=${data.access_token}; path=/`;
                 window.location.href = '/tasks/tasks-page'; // Redirect to your tasks page after successful login.
             } else {
                 const errorData = await response.json();

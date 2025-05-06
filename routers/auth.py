@@ -51,9 +51,14 @@ class Token(BaseModel):
 def authenticate_user(db: Session, username: str, password: str):
     user = db.query(User).filter(User.username == username).first()
     if not user:
+        print("Kullanıcı bulunamadı:", username)
         return False
+    print("Veritabanındaki hash:", user.hashed_password)
+    print("Girilen şifre:", password)
     if not bcrypt_context.verify(password, user.hashed_password):
+        print("Şifre eşleşmedi.")
         return False
+    print("Giriş başarılı!")
     return user
 
 
