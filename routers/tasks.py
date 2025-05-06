@@ -66,7 +66,7 @@ async def render_tasks_page(request: Request, db: db_dependency):
         if user is None:
             return redirect_to_login()
         tasks = db.query(Tasks).filter(Tasks.owner_id == user.get('id')).all()
-        return templates.TemplateResponse("tasks.html", {"request": request, "tasks": tasks, "user": user})
+        return templates.TemplateResponse("edit-task.html", {"request": request, "tasks": tasks, "user": user})
     except:
         return redirect_to_login()
 
@@ -78,7 +78,7 @@ async def render_add_task_page(request: Request):
         user = await get_current_user(request.cookies.get("access_token"))
         if user is None:
             return redirect_to_login()
-        return templates.TemplateResponse("add-task.html", {"request": request, "user": user})
+        return templates.TemplateResponse("edit-task.html", {"request": request, "user": user})
     except:
         return redirect_to_login()
 

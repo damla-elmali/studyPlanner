@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
 
 from models import LessonPerformanceSummary
 from routers.auth import get_current_user
 from routers.analyzer import check_user, get_db
 
 router = APIRouter()
+
+templates = Jinja2Templates(directory="frontend")
 
 class LessonPerformanceSummarySchema(BaseModel):
     lesson_id: int

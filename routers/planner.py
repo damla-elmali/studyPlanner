@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="frontend")
 
 def get_db():
     db = SessionLocal()

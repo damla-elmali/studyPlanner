@@ -6,6 +6,8 @@ from typing import List, Dict
 from enum import Enum
 from datetime import date
 
+from fastapi.templating import Jinja2Templates
+
 from database import SessionLocal
 from models import (
     TytMockTest, TytMockTestSection,
@@ -16,6 +18,8 @@ from routers.auth import get_current_user
 
 
 router = APIRouter()
+
+templates = Jinja2Templates(directory="frontend")
 
 # ---------------- ENUMS ----------------
 

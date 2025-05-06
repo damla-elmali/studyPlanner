@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import RedirectResponse
 from starlette import status
+from fastapi.templating import Jinja2Templates
+
 from database import engine, Base
 from routers import (
     auth, tasks, chatbot, planner, analyzer, user_analytics
@@ -14,6 +16,9 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+templates = Jinja2Templates(directory="templates")
+
 
 @app.get("/")
 def read_root(request: Request):
