@@ -12,10 +12,9 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from fastapi.templating import Jinja2Templates
 
-
 router = APIRouter()
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="templates")
 
 SECRET_KEY = "aed5frg86yjnbver8634retgfhfghw3r"
 ALGORITHM = "HS256"
@@ -76,6 +75,18 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         return {"username": username, "id": user_id, "role": user_role}
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication credentials")
+
+
+
+
+@router.get("/login-page")
+def render_login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@router.get("/register-page")
+def render_register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 
 

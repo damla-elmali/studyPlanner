@@ -1,16 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Form
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from models import Tasks, ScheduleSlot
-from datetime import datetime, time
+from models import Tasks, ScheduleSlot, WeeklyPlans
+from datetime import datetime, time, date
 from routers.auth import get_current_user
 import os
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 import google.generativeai as genai
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
+
+templates = Jinja2Templates(directory="templates")
 
 def get_db():
     db = SessionLocal()
@@ -18,6 +22,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
+
 
 class ManualPlanRequest(BaseModel):
     task: str
@@ -32,16 +40,17 @@ class AIPlanRequest(BaseModel):
     user_notes: str = "User prefers to study in the evenings."
 
 
+
 @router.get("/plan")
 async def get_plans(db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
-    plans = db.query(ScheduleSlot).filter(ScheduleSlot.user_id == user["id"]).all()
+    plans = db.query(ScheduleSlot).filter(ScheduleSlot.user_id == user.get("id")).all()
     return plans
 
 
 @router.put("/plan/{slot_id}")
 async def update_plan(slot_id: int, request: UpdatePlanRequest, db: Session = Depends(get_db),
                 user: dict = Depends(get_current_user)):
-    slot = db.query(ScheduleSlot).filter(ScheduleSlot.id == slot_id, ScheduleSlot.user_id == user["id"]).first()
+    slot = db.query(ScheduleSlot).filter(ScheduleSlot.id == slot_id, ScheduleSlot.user_id == user.get("id")).first()
     if not slot:
         raise HTTPException(status_code=404, detail="Plan not found")
 
@@ -57,7 +66,7 @@ async def update_plan(slot_id: int, request: UpdatePlanRequest, db: Session = De
 
 @router.delete("/plan/{slot_id}")
 async def delete_plan(slot_id: int, db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
-    slot = db.query(ScheduleSlot).filter(ScheduleSlot.id == slot_id, ScheduleSlot.user_id == user["id"]).first()
+    slot = db.query(ScheduleSlot).filter(ScheduleSlot.id == slot_id, ScheduleSlot.user_id == user.get("id")).first()
     if not slot:
         raise HTTPException(status_code=404, detail="Plan not found")
 
@@ -71,7 +80,7 @@ async def manual_plan(request: ManualPlanRequest, db: Session = Depends(get_db),
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    task = db.query(Tasks).filter(Tasks.title == request.task, Tasks.owner_id == user["id"]).first()
+    task = db.query(Tasks).filter(Tasks.title == request.task, Tasks.owner_id == user.get("id")).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -116,7 +125,7 @@ async def ai_plan(request: AIPlanRequest, db: Session = Depends(get_db), user: d
     if not user:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    tasks = db.query(Tasks).filter(Tasks.owner_id == user["id"], Tasks.completed == False).all()
+    tasks = db.query(Tasks).filter(Tasks.owner_id == user.get("id"), Tasks.completed == False).all()
     if not tasks:
         raise HTTPException(status_code=404, detail="No tasks found for user.")
 
@@ -197,12 +206,22 @@ Output the plan as a JSON list with this format:
         raise HTTPException(status_code=500, detail=f"Gemini response parsing failed: {str(e)}")
 
 
+def format_datetime_for_google(dt):
+    return dt.strftime("%Y%m%dT%H%M%SZ")  # UTC format
+
 def generate_google_calendar_link(event_details):
     base_url = "https://www.google.com/calendar/render?action=TEMPLATE"
+
+    start = format_datetime_for_google(event_details['start_time'])
+    end = format_datetime_for_google(event_details['end_time'])
+
     event_data = {
         "text": event_details['title'],
-        "dates": f"{event_details['start_time'].isoformat()}Z/{event_details['end_time'].isoformat()}Z",
+        "dates": f"{start}/{end}",
         "details": event_details.get('description', ''),
     }
-    event_url = base_url + '&' + '&'.join([f"{key}={quote_plus(value)}" for key, value in event_data.items()])
+
+    event_url = base_url + '&' + '&'.join(
+        [f"{key}={quote_plus(str(value))}" for key, value in event_data.items()]
+    )
     return event_url

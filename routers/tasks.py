@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 from typing import Annotated, List, Dict
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy import func
@@ -7,12 +7,16 @@ from pydantic import BaseModel, Field, validator
 from models import Tasks, User, Lesson, TaskQuestionRecord
 from database import SessionLocal
 from routers.analyzer import TaskQuestionRecordCreate
-from routers.auth import get_current_user
+from routers.auth import get_current_user, templates
 from utils.analytics_updater import update_lesson_summary_from_record
+from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import RedirectResponse
 
 
 router = APIRouter()
 
+templates = Jinja2Templates(directory="templates")
 
 class TaskCreate(BaseModel):
     title: str = Field(..., example="Task Title")
@@ -48,13 +52,55 @@ db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
-@router.get("/")
-async def read_all(user: user_dependency, db: db_dependency):
-    if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    return db.query(Tasks).filter(Tasks.owner_id == user.get('id')).all()
+def redirect_to_login():
+    redirect_response = RedirectResponse(url="/auth/login-page", status_code=status.HTTP_302_FOUND)
+    redirect_response.delete_cookie("access_token")
+    return redirect_response
 
 
+# TASK SAYFASINI GÖRÜNTÜLE
+@router.get("/tasks-page")
+async def render_tasks_page(request: Request, db: db_dependency):
+    try:
+        user = await get_current_user(request.cookies.get("access_token"))
+        if user is None:
+            return redirect_to_login()
+        tasks = db.query(Tasks).filter(Tasks.owner_id == user.get('id')).all()
+        return templates.TemplateResponse("tasks.html", {"request": request, "tasks": tasks, "user": user})
+    except:
+        return redirect_to_login()
+
+
+# YENİ TASK EKLEME SAYFASINI GÖRÜNTÜLE
+@router.get("/add-task-page")
+async def render_add_task_page(request: Request):
+    try:
+        user = await get_current_user(request.cookies.get("access_token"))
+        if user is None:
+            return redirect_to_login()
+        return templates.TemplateResponse("add-task.html", {"request": request, "user": user})
+    except:
+        return redirect_to_login()
+
+
+# TASK DÜZENLEME SAYFASINI GÖRÜNTÜLE
+@router.get("/edit-task-page/{task_id}")
+async def render_edit_task_page(request: Request, task_id: int, db: db_dependency):
+    try:
+        user = await get_current_user(request.cookies.get("access_token"))
+        if user is None:
+            return redirect_to_login()
+        task = db.query(Tasks).filter(Tasks.id == task_id).first()
+        return templates.TemplateResponse("edit-task.html", {"request": request, "task": task, "user": user})
+    except:
+        return redirect_to_login()
+
+
+
+
+
+
+# Create Task
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_task(user: user_dependency, db: db_dependency, task_request: TaskCreate):
     if user is None:
@@ -75,13 +121,22 @@ async def create_task(user: user_dependency, db: db_dependency, task_request: Ta
     return {"message": "Task created successfully", "task_id": task.id}
 
 
+# Get All Tasks
+@router.get("/")
+async def read_all(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    return db.query(Tasks).filter(Tasks.owner_id == user.get('id')).all()
+
+
+# Delete Task
 @router.delete("/task/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_study_task(
+async def delete_task(
         task_id: int,
         db: Session = Depends(get_db),
         user: dict = Depends(get_current_user)
 ):
-    task = db.query(Tasks).filter(Tasks.id == task_id, Tasks.owner_id == user["id"]).first()
+    task = db.query(Tasks).filter(Tasks.id == task_id, Tasks.owner_id == user.get("id")).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -89,14 +144,15 @@ async def delete_study_task(
     db.commit()
 
 
+# Update Task
 @router.put("/task/{task_id}", status_code=status.HTTP_200_OK)
-async def update_study_task(
+async def update_task(
         task_id: int,
         task_update: TaskCreate,
         db: Session = Depends(get_db),
         user: dict = Depends(get_current_user)
 ):
-    task = db.query(Tasks).filter(Tasks.id == task_id, Tasks.owner_id == user["id"]).first()
+    task = db.query(Tasks).filter(Tasks.id == task_id, Tasks.owner_id == user.get("id")).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -127,7 +183,7 @@ async def complete_task_with_analysis(
     if user is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    task = db.query(Tasks).filter(Tasks.id == task_id, Tasks.owner_id == user["id"]).first()
+    task = db.query(Tasks).filter(Tasks.id == task_id, Tasks.owner_id == user.get("id")).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -141,7 +197,7 @@ async def complete_task_with_analysis(
     # Aynı görev için tekrar kayıt yapılmasın
     existing_record = db.query(TaskQuestionRecord).filter(
         TaskQuestionRecord.task_id == task_id,
-        TaskQuestionRecord.user_id == user["id"]
+        TaskQuestionRecord.user_id == user.get("id")
     ).first()
     if existing_record:
         raise HTTPException(status_code=400, detail="Analysis already exists for this task")

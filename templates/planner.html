@@ -1,60 +1,103 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda</title>
-    <link rel="stylesheet" href="planner.css">
+    <title>Planner Page</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <!-- FullCalendar -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css' rel='stylesheet' />
 </head>
 <body>
-    <div class="planner-box">
-        <header>
-            <a href="../hub/hub.html" class="home-button">Main Page</a>
-            <div class="week-navigation">
-                <button id="prev-week">&lt;</button>
-                <h2 id="current-week"></h2>
-                <button id="next-week">&gt;</button>
-            </div>
-        </header>
-        <main>
-            <section class="calendar-week">
-                <ul class="week-days">
-                    </ul>
-            </section>
-            <section class="add-lesson">
-                <h2>Ders Ekle</h2>
-                <form id="add-lesson-form">
-                    <div class="form-group">
-                        <label for="lesson-name">Lecture Name:</label>
-                        <input type="text" id="lesson-name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lesson-type">Lecture Type:</label>
-                        <select id="lesson-type">
-                            <option value="matematik">Matematik</option>
-                            <option value="fen">Fen</option>
-                            <option value="turkce">Türkçe</option>
-                            <option value="sosyal">Sosyal</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="study-duration">Study Minute:</label>
-                        <input type="number" id="study-duration" min="1" placeholder="Exp: 60" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lesson-date">Study Day:</label>
-                        <input type="date" id="lesson-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lesson-time">Studying Time:</label>
-                        <input type="time" id="lesson-time" required>
-                        <small class="form-text">Exp: 09:15 or 17:45</small>
-                    </div>
-                    <button type="submit">Add Lecture</button>
-                </form>
-            </section>
-        </main>
+    <div class="container mt-4">
+        <h1>Welcome, {{ username }}!</h1>
+        <a href="/logout">Logout</a>
+
+        <!-- Calendar Section -->
+        <section id="calendar-section" class="my-4">
+            <h2>Calendar View</h2>
+            <div id="calendar-container"></div>
+        </section>
+
+        <!-- Weekly Plan -->
+        <section id="weekly-plan" class="my-4">
+            <h2>Your Weekly Plan</h2>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Task</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.day }}</td>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.start_time }}</td>
+                        <td>{{ task.end_time }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary update-btn"
+                                    data-taskid="{{ task.id }}"
+                                    data-title="{{ task.title }}"
+                                    data-description="{{ task.description }}">
+                                Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-btn"
+                                    data-taskid="{{ task.id }}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Add Task -->
+        <section id="add-task" class="my-4">
+            <h3>Add New Task</h3>
+            <form id="add-task-form">
+                <select id="lesson-select" name="lesson" class="form-select mb-2">
+                    <option value="TYT Türkçe">TYT Türkçe</option>
+                    <!-- Diğer dersler -->
+                </select>
+                <input type="text" name="title" class="form-control mb-2" placeholder="Task Title" required />
+                <textarea name="description" class="form-control mb-2" placeholder="Description"></textarea>
+                <input type="text" name="priority" class="form-control mb-2" placeholder="Priority" required />
+                <input type="datetime-local" name="deadline" class="form-control mb-2" required />
+                <input type="number" name="estimated_time" class="form-control mb-2" placeholder="Estimated Time (minutes)" required />
+                <button type="submit" class="btn btn-success">Create Task</button>
+            </form>
+        </section>
+
+        <!-- Manual Plan -->
+        <section id="manual-plan" class="my-4">
+            <h3>Manual Plan</h3>
+            <form id="manual-plan-form">
+                <select id="task-select" name="task" class="form-select mb-2">
+                    <!-- Tasks dynamically loaded -->
+                </select>
+                <input type="datetime-local" name="start_time" class="form-control mb-2" required />
+                <input type="datetime-local" name="end_time" class="form-control mb-2" required />
+                <button type="submit" class="btn btn-primary">Create Manual Plan</button>
+            </form>
+        </section>
+
+        <!-- AI Plan -->
+        <section id="ai-plan" class="my-4">
+            <h3>AI Plan</h3>
+            <textarea id="user-notes" name="user_notes" class="form-control mb-2" placeholder="User Notes (optional)"></textarea>
+            <button type="button" id="generate-ai-plan" class="btn btn-dark">Generate AI Plan</button>
+        </section>
     </div>
-    <script src="planner.js"></script>
+
+    <!-- Scripts -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <script src="/static/js/base.js"></script>
 </body>
 </html>
