@@ -1,0 +1,64 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card text-center">
+        <div class="card-header">
+            Your Tasks!
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                List of your tasks!
+            </h5>
+            <p class="card-text">
+                Information regarding tasks that need to be completed
+            </p>
+
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Priority</th>
+                        <th scope="col">Deadline</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for task in tasks %}
+                {% if task.completed == False %}
+                <tr class="pointer">
+                    <td>{{loop.index}}</td>
+                    <td>{{task.title}}</td>
+                    <td>{{task.priority}}</td>
+                    <td>{{task.deadline}}</td>
+                    <td><span class="badge badge-warning">Incomplete</span></td>
+                    <td>
+                        <button onclick="window.location.href='edit-task-page/{{task.id}}'"
+                                type="button" class="btn btn-info">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr class="pointer alert alert-success">
+                    <td>{{loop.index}}</td>
+                    <td class="strike-through-td">{{task.title}}</td>
+                    <td>{{task.priority}}</td>
+                    <td>{{task.deadline}}</td>
+                    <td><span class="badge badge-success">Completed</span></td>
+                    <td>
+                        <button onclick="window.location.href='edit-task-page/{{task.id}}'"
+                                type="button" class="btn btn-info">
+                            Edit
+                        </button>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+            <a href="add-task-page" class="btn btn-primary">Add a new task!</a>
+        </div>
+    </div>
+</div>

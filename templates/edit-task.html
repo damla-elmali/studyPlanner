@@ -1,0 +1,49 @@
+{% include 'layout.html' %}
+
+<div class="container">
+    <div class="card text-center">
+        <div class="card-header">
+            Edit Task!
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">
+                Modify the task details below.
+            </h5>
+            <form method="POST" action="/edit-task/{{task.id}}">
+                <div class="form-group">
+                    <label for="title">Task Title</label>
+                    <input type="text" class="form-control" id="title" name="title" value="{{task.title}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea class="form-control" id="description" name="description" required>{{task.description}}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="lesson_id">Lesson</label>
+                    <select class="form-control" id="lesson_id" name="lesson_id" required>
+                        {% for lesson in lessons %}
+                        <option value="{{lesson.id}}" {% if lesson.id == task.lesson_id %}selected{% endif %}>{{lesson.title}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select class="form-control" id="priority" name="priority" required>
+                        <option value="1" {% if task.priority == 1 %}selected{% endif %}>Low</option>
+                        <option value="2" {% if task.priority == 2 %}selected{% endif %}>Medium</option>
+                        <option value="3" {% if task.priority == 3 %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="deadline">Deadline</label>
+                    <input type="date" class="form-control" id="deadline" name="deadline" value="{{task.deadline}}" required>
+                </div>
+                <div class="form-group">
+                    <label for="estimated_time">Estimated Time (minutes)</label>
+                    <input type="number" class="form-control" id="estimated_time" name="estimated_time" value="{{task.estimated_time}}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Update Task</button>
+            </form>
+        </div>
+    </div>
+</div>
